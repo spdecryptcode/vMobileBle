@@ -1,0 +1,6 @@
+module Pods_vmobileble_vmobilebleTests {
+  umbrella header "Pods-vmobileble-vmobilebleTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
