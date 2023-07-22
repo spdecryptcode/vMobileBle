@@ -279,6 +279,7 @@ var Buffer = require('buffer/').Buffer
 const SECONDS_TO_SCAN_FOR = 7;
 const SERVICE_UUIDS: string[] = [];
 const ALLOW_DUPLICATES = true;
+var peripheralID = '';
 
 import BleManager, {
   BleDisconnectPeripheralEvent,
@@ -303,6 +304,7 @@ declare module 'react-native-ble-manager' {
 
 const App = () => {
   const [isScanning, setIsScanning] = useState(false);
+  const [resultInfo, setResultInfo] = useState('');
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>(),
   );
@@ -472,10 +474,13 @@ const App = () => {
           }
         }
 
+        this.peripheralId = peripheral.id
         let p = peripherals.get(peripheral.id);
         if (p) {
           addOrUpdatePeripheral(peripheral.id, {...peripheral, rssi});
         }
+        
+        
       }
     } catch (error) {
       console.error(
@@ -487,7 +492,8 @@ const App = () => {
 
   const readData = async () => {
     BleManager.read(
-      "1333ba01-d6a4-e3fb-0e27-bb5e8fd9c5d9",
+      // "1333ba01-d6a4-e3fb-0e27-bb5e8fd9c5d9",
+      this.peripheralId,
       "b38fab03-72ef-4589-afee-5eeab74b4fa0",
       "b38fab03-72ef-4589-afee-5eeab74b4fa3"
     )
@@ -496,7 +502,7 @@ const App = () => {
         decodedString = decodeURIComponent(escape(encodedString));
         console.log('decodedString'+decodedString)
         if(decodedString != '' && decodedString != null){
-        Alert.alert('Success: Data has bee read. Please check console.')
+          setResultInfo(decodedString)
         }
         else{
         Alert.alert('Failure: There\'s nothing to read.')
@@ -520,7 +526,8 @@ const App = () => {
 
   const readDataAndroid = async () => {
     BleManager.read(
-      "F8:DC:7A:79:45:58",
+      // "F8:DC:7A:79:45:58",
+      this.peripheralId,
       "b38fab03-72ef-4589-afee-5eeab74b4fa0",
       "b38fab03-72ef-4589-afee-5eeab74b4fa3"
     )
@@ -529,7 +536,7 @@ const App = () => {
         decodedString = decodeURIComponent(escape(encodedString));
         console.log('decodedString'+decodedString)
         if(decodedString != '' && decodedString != null){
-        Alert.alert('Success: Data has bee read. Please check console.')
+          setResultInfo(decodedString)
         }
         else{
         Alert.alert('Failure: There\'s nothing to read.')
@@ -562,7 +569,8 @@ const App = () => {
     }
     const data = stringToBytes(stringToWrite);
     BleManager.writeWithoutResponse(
-      "1333ba01-d6a4-e3fb-0e27-bb5e8fd9c5d9",
+      // "1333ba01-d6a4-e3fb-0e27-bb5e8fd9c5d9",
+      this.peripheralId,
       "b38fab03-72ef-4589-afee-5eeab74b4fa0",
       "b38fab03-72ef-4589-afee-5eeab74b4fa1",
       data
@@ -592,7 +600,8 @@ const App = () => {
     }
     const data = stringToBytes(stringToWrite);
     BleManager.writeWithoutResponse(
-      "F8:DC:7A:79:45:58",
+      // "F8:DC:7A:79:45:58",
+      this.peripheralId,
       "b38fab03-72ef-4589-afee-5eeab74b4fa0",
       "b38fab03-72ef-4589-afee-5eeab74b4fa1",
       data
@@ -743,13 +752,17 @@ const App = () => {
             </Text>
           </View>
         )}
-
+        {(resultInfo == null || resultInfo == '') &&
         <FlatList
           data={Array.from(peripherals.values())}
           contentContainerStyle={{rowGap: 12}}
           renderItem={renderItem}
           keyExtractor={item => item.id}
         />
+        }
+        {(resultInfo != null && resultInfo != '') &&
+        <Text style={styles.result}>{resultInfo}</Text>
+        }
       </SafeAreaView>
     </>
   );
@@ -840,6 +853,11 @@ const styles = StyleSheet.create({
     ...boxShadow,
   },
   noPeripherals: {
+    margin: 10,
+    textAlign: 'center',
+    color: Colors.white,
+  },
+  result: {
     margin: 10,
     textAlign: 'center',
     color: Colors.white,
